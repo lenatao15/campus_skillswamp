@@ -7,127 +7,110 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'campus_skillSwamp.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from skills.models import Category, Skill, Review
+from skills.models import Category, Skill, Review, Booking
 
 def populate():
-    print("Starting population script...")
+    print("Starting extended population script...")
 
-    # 1. Создаем категории
-    categories_data = ['Cooking', 'Crafting', 'Tech', 'Music', 'Languages', 'Fitness']
+    # 1. Категории
+    categories_data = ['Cooking', 'Crafting', 'Tech', 'Music', 'Languages', 'Fitness', 'Art', 'Academic']
     categories = {}
     for cat_name in categories_data:
         cat, created = Category.objects.get_or_create(name=cat_name)
         categories[cat_name] = cat
-        print(f"Category '{cat_name}' ready.")
 
-    # 2. Создаем пользователей
+    # 2. Пользователи
     users_data = [
-        ('alice', 'alice@example.com', 'pass12345'),
-        ('bob', 'bob@example.com', 'pass12345'),
-        ('charlie', 'charlie@example.com', 'pass12345'),
-        ('diana', 'diana@example.com', 'pass12345'),
+        ('alice', 'alice@example.com'),
+        ('bob', 'bob@example.com'),
+        ('charlie', 'charlie@example.com'),
+        ('diana', 'diana@example.com'),
+        ('eric', 'eric@example.com'),
+        ('fiona', 'fiona@example.com'),
     ]
     users = []
-    for username, email, password in users_data:
+    for username, email in users_data:
         user, created = User.objects.get_or_create(username=username, email=email)
         if created:
-            user.set_password(password)
+            user.set_password('pass12345')
             user.save()
-            print(f"User '{username}' created.")
         users.append(user)
 
-    # 3. Список навыков для добавления
-    skills_to_add = [
-        {
-            'title': 'Italian Pasta Masterclass',
-            'description': 'Learn how to make authentic carbonara and fettuccine from scratch. Ingredients included!',
-            'category': categories['Cooking'],
-            'price': 25.00,
-            'is_free': False,
-            'owner': users[0], # Alice
-        },
-        {
-            'title': 'Custom Hand-knit Sweaters',
-            'description': 'I will knit a custom sweater for you. You choose the color and pattern. Takes about 2 weeks.',
-            'category': categories['Crafting'],
-            'price': 45.00,
-            'is_free': False,
-            'owner': users[1], # Bob
-        },
-        {
-            'title': 'Python Debugging Help',
-            'description': 'Struggling with your homework? I can help you find those pesky bugs in your Python code.',
-            'category': categories['Tech'],
-            'price': 0.00,
-            'is_free': True,
-            'owner': users[2], # Charlie
-        },
-        {
-            'title': 'Beginner Guitar Lessons',
-            'description': 'Want to play your favorite songs? I teach basic chords and strumming patterns.',
-            'category': categories['Music'],
-            'price': 15.00,
-            'is_free': False,
-            'owner': users[0], # Alice
-        },
-        {
-            'title': 'French Conversation Practice',
-            'description': 'Native speaker available for 1-on-1 conversation practice. Improve your fluency!',
-            'category': categories['Languages'],
-            'price': 10.00,
-            'is_free': False,
-            'owner': users[1], # Bob
-        },
-        {
-            'title': 'Homemade Vegan Desserts',
-            'description': 'Delicious brownies and cookies that are 100% vegan. Healthy and tasty!',
-            'category': categories['Cooking'],
-            'price': 5.00,
-            'is_free': False,
-            'owner': users[2], # Charlie
-        },
+    # 3. Расширенный список навыков
+    extended_skills = [
+        ('Japanese for Beginners', 'Learn Hiragana and basic phrases.', 'Languages', 15.00, False),
+        ('UI/UX Design Basics', 'Introduction to Figma and design principles.', 'Tech', 30.00, False),
+        ('Personal Training Session', 'One hour of high-intensity workout.', 'Fitness', 0.00, True),
+        ('Watercolor Painting', 'Master the basics of watercolor techniques.', 'Art', 20.00, False),
+        ('Calculus Tutoring', 'Help with limits, derivatives, and integrals.', 'Academic', 25.00, False),
+        ('Electronic Music Production', 'Learn how to use Ableton Live.', 'Music', 40.00, False),
+        ('Bread Baking 101', 'Make your own sourdough at home.', 'Cooking', 10.00, False),
+        ('Pottery Wheel for Beginners', 'Learn to throw clay on the wheel.', 'Crafting', 35.00, False),
+        ('JavaScript/React Help', 'Debug your web applications.', 'Tech', 0.00, True),
+        ('Yoga for Stress Relief', 'Gentle flow to relax after classes.', 'Fitness', 5.00, False),
+        ('Portrait Photography', 'Tips for lighting and composition.', 'Art', 15.00, False),
+        ('Spanish Conversation', 'Practice speaking with a fluent speaker.', 'Languages', 12.00, False),
+        ('Basic First Aid', 'Essential life-saving skills.', 'Academic', 0.00, True),
+        ('Drumming Lessons', 'Learn basic rock beats and fills.', 'Music', 20.00, False),
+        ('Vegan Meal Prep', 'Plan your healthy meals for the week.', 'Cooking', 10.00, False),
     ]
 
-    # 4. Добавляем навыки и отзывы
     comments = [
-        "Amazing experience, highly recommended!",
-        "Very helpful and professional.",
-        "Great value for money.",
-        "Exactly what I was looking for.",
-        "Good, but could be better organized.",
-        "Excellent teacher, very patient.",
-        "Really enjoyed the session!",
+        "Amazing experience, highly recommended!", "Very helpful and professional.",
+        "Great value for money.", "Exactly what I was looking for.",
+        "Excellent teacher, very patient.", "Really enjoyed the session!",
+        "Super clear explanations.", "Would definitely book again."
     ]
 
-    for s in skills_to_add:
+    booking_messages = [
+        "Hi! I'd love to learn this. Are you free this weekend?",
+        "I'm struggling with this topic, could you help me out?",
+        "This looks great, I'd like to book a session.",
+        "Hello, I am interested in your skill. When can we meet?",
+        "Can we schedule a call for next Tuesday?"
+    ]
+
+    # 4. Создание данных
+    for title, desc, cat_name, price, is_free in extended_skills:
+        owner = random.choice(users)
         skill, created = Skill.objects.get_or_create(
-            title=s['title'],
-            owner=s['owner'],
+            title=title,
+            owner=owner,
             defaults={
-                'description': s['description'],
-                'category': s['category'],
-                'price': s['price'],
-                'is_free': s['is_free'],
+                'description': desc,
+                'category': categories[cat_name],
+                'price': price,
+                'is_free': is_free,
             }
         )
-        print(f"Skill '{skill.title}' ready.")
+        print(f"Skill '{skill.title}' processed.")
 
-        # Добавляем 1-3 случайных отзыва для каждого навыка
-        if skill.reviews.count() == 0:
-            potential_reviewers = [u for u in users if u != skill.owner]
-            num_reviews = random.randint(1, 3)
-            reviewers = random.sample(potential_reviewers, min(num_reviews, len(potential_reviewers)))
-            
-            for reviewer in reviewers:
-                Review.objects.create(
-                    skill=skill,
-                    reviewer=reviewer,
-                    rating=random.randint(4, 5), # Делаем отзывы позитивными для красоты
-                    comment=random.choice(comments)
-                )
-                print(f"  - Added review from {reviewer.username}")
+        # Добавляем 2-4 отзыва
+        potential_reviewers = [u for u in users if u != owner]
+        num_reviews = random.randint(2, 4)
+        for reviewer in random.sample(potential_reviewers, num_reviews):
+            Review.objects.get_or_create(
+                skill=skill,
+                reviewer=reviewer,
+                defaults={
+                    'rating': random.randint(4, 5),
+                    'comment': random.choice(comments)
+                }
+            )
 
-    print("Database populated with skills and reviews successfully!")
+        # Добавляем 1-2 запроса
+        num_requests = random.randint(1, 2)
+        for requester in random.sample(potential_reviewers, num_requests):
+            Booking.objects.get_or_create(
+                skill=skill,
+                requester=requester,
+                defaults={
+                    'message': random.choice(booking_messages),
+                    'status': random.choice(['pending', 'approved'])
+                }
+            )
+
+    print(f"\nSuccessfully populated database with {len(extended_skills)} skills and corresponding data!")
 
 if __name__ == '__main__':
     populate()
