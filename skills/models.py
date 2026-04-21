@@ -37,6 +37,16 @@ class Skill(models.Model):
     def __str__(self):
         return self.title
 
+    def get_average_rating(self):
+        reviews = self.reviews.all()
+        if not reviews:
+            return 0
+        return sum(review.rating for review in reviews) / reviews.count()
+
+    def get_star_range(self):
+        avg = self.get_average_rating()
+        return range(int(round(avg)))
+
 # NEW: Review System
 class Review(models.Model):
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name='reviews')

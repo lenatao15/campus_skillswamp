@@ -7,7 +7,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'campus_skillSwamp.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from skills.models import Category, Skill
+from skills.models import Category, Skill, Review
 
 def populate():
     print("Starting population script...")
@@ -25,15 +25,16 @@ def populate():
         ('alice', 'alice@example.com', 'pass12345'),
         ('bob', 'bob@example.com', 'pass12345'),
         ('charlie', 'charlie@example.com', 'pass12345'),
+        ('diana', 'diana@example.com', 'pass12345'),
     ]
     users = []
     for username, email, password in users_data:
-        if not User.objects.filter(username=username).exists():
-            user = User.objects.create_user(username, email, password)
-            users.append(user)
+        user, created = User.objects.get_or_create(username=username, email=email)
+        if created:
+            user.set_password(password)
+            user.save()
             print(f"User '{username}' created.")
-        else:
-            users.append(User.objects.get(username=username))
+        users.append(user)
 
     # 3. Список навыков для добавления
     skills_to_add = [
@@ -85,53 +86,48 @@ def populate():
             'is_free': False,
             'owner': users[2], # Charlie
         },
-        {
-            'title': 'Diy Pottery Workshop',
-            'description': 'Learn the basics of hand-building pottery. We will make mugs and bowls.',
-            'category': categories['Crafting'],
-            'price': 30.00,
-            'is_free': False,
-            'owner': users[0], # Alice
-        },
-        {
-            'title': 'Excel for Business',
-            'description': 'Master VLOOKUP, Pivot Tables, and data visualization for your next internship.',
-            'category': categories['Tech'],
-            'price': 20.00,
-            'is_free': False,
-            'owner': users[1], # Bob
-        },
-        {
-            'title': 'Morning Yoga Sessions',
-            'description': 'Start your day with energy. 45-minute yoga flow on the campus lawn.',
-            'category': categories['Fitness'],
-            'price': 0.00,
-            'is_free': True,
-            'owner': users[2], # Charlie
-        },
-        {
-            'title': 'Basic Woodworking',
-            'description': 'Learn how to use basic tools to build simple birdhouses or shelves.',
-            'category': categories['Crafting'],
-            'price': 20.00,
-            'is_free': False,
-            'owner': users[0], # Alice
-        },
     ]
 
-    # 4. Добавляем навыки в базу
-    for s in skills_to_add:
-        Skill.objects.get_or_create(
-            title=s['title'],
-            description=s['description'],
-            category=s['category'],
-            price=s['price'],
-            is_free=s['is_free'],
-            owner=s['owner']
-        )
-        print(f"Skill '{s['title']}' added.")
+    # 4. Добавляем навыки и отзывы
+    comments = [
+        "Amazing experience, highly recommended!",
+        "Very helpful and professional.",
+        "Great value for money.",
+        "Exactly what I was looking for.",
+        "Good, but could be better organized.",
+        "Excellent teacher, very patient.",
+        "Really enjoyed the session!",
+    ]
 
-    print("Database populated successfully!")
+    for s in skills_to_add:
+        skill, created = Skill.objects.get_or_create(
+            title=s['title'],
+            owner=s['owner'],
+            defaults={
+                'description': s['description'],
+                'category': s['category'],
+                'price': s['price'],
+                'is_free': s['is_free'],
+            }
+        )
+        print(f"Skill '{skill.title}' ready.")
+
+        # Добавляем 1-3 случайных отзыва для каждого навыка
+        if skill.reviews.count() == 0:
+            potential_reviewers = [u for u in users if u != skill.owner]
+            num_reviews = random.randint(1, 3)
+            reviewers = random.sample(potential_reviewers, min(num_reviews, len(potential_reviewers)))
+            
+            for reviewer in reviewers:
+                Review.objects.create(
+                    skill=skill,
+                    reviewer=reviewer,
+                    rating=random.randint(4, 5), # Делаем отзывы позитивными для красоты
+                    comment=random.choice(comments)
+                )
+                print(f"  - Added review from {reviewer.username}")
+
+    print("Database populated with skills and reviews successfully!")
 
 if __name__ == '__main__':
     populate()
