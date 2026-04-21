@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5 mt-4">
+    <h2 class="fw-bold">User Dashboard</h2>
+    <a href="{% url 'skill_create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">+ Post New Skill</a>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-pills mb-4 bg-white p-2 rounded shadow-sm" id="pills-tab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active rounded-pill fw-bold" id="pills-skills-tab" data-bs-toggle="pill" data-bs-target="#pills-skills" type="button" role="tab">My Skills</button>
+    </li>
+    <li class="nav-item ms-2" role="presentation">
+        <button class="nav-link rounded-pill fw-bold" id="pills-received-tab" data-bs-toggle="pill" data-bs-target="#pills-received" type="button" role="tab">
+            Received Requests 
+            {% if received_bookings %}<span class="badge bg-danger rounded-circle ms-1">{{ received_bookings.count }}</span>{% endif %}
+        </button>
+    </li>
+    <li class="nav-item ms-2" role="presentation">
+        <button class="nav-link rounded-pill fw-bold" id="pills-sent-tab" data-bs-toggle="pill" data-bs-target="#pills-sent" type="button" role="tab">My Requests</button>
+    </li>
+</ul>
+
+<!-- Tabs Content -->
+<div class="tab-content" id="pills-tabContent">
+    <!-- MY SKILLS -->
+    <div class="tab-pane fade show active" id="pills-skills" role="tabpanel">
+        <div class="bg-white p-4 rounded shadow-sm">
+            {% if my_skills %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Skill</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for skill in my_skills %}
+                            <tr>
+                                <td><a href="{% url 'skill_detail' skill.pk %}" class="fw-bold text-decoration-none text-dark">{{ skill.title }}</a></td>
+                                <td><span class="badge badge-category rounded-pill">{{ skill.category.name }}</span></td>
+                                <td>{% if skill.is_free %}Free{% else %}${{ skill.price }}{% endif %}</td>
+                                <td>
+                                    <a href="{% url 'skill_update' skill.pk %}" class="btn btn-sm btn-outline-warning rounded-pill">Edit</a>
+                                    <a href="{% url 'skill_delete' skill.pk %}" class="btn btn-sm btn-outline-danger rounded-pill">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-4">You haven't posted any skills yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RECEIVED REQUESTS -->
+    <div class="tab-pane fade" id="pills-received" role="tabpanel">
+        <div class="bg-white p-4 rounded shadow-sm">
+            {% if received_bookings %}
+                {% for booking in received_bookings %}
+                    <div class="mb-4 p-4 border rounded shadow-sm bg-light">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1">Request for: {{ booking.skill.title }}</h5>
+                                <p class="mb-0 text-muted small">From: <strong>{{ booking.requester.username }}</strong> on {{ booking.created_at|date:"M d, Y" }}</p>
+                            </div>
+                            <span class="badge rounded-pill px-3 py-2 
+                                {% if booking.status == 'pending' %}bg-warning text-dark{% elif booking.status == 'approved' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ booking.status|capfirst }}
+                            </span>
+                        </div>
+                        <div class="bg-white p-3 rounded border mb-3">
+                            <p class="mb-0 small fst-italic">"{{ booking.message }}"</p>
+                        </div>
+                        {% if booking.status == 'pending' %}
+                            <div class="d-flex gap-2">
+                                <form action="{% url 'booking_status_update' booking.pk 'approved' %}" method="post">
+                                    {% csrf_token %}
+                                    <button class="btn btn-success btn-sm rounded-pill px-3">Approve</button>
+                                </form>
+                                <form action="{% url 'booking_status_update' booking.pk 'rejected' %}" method="post">
+                                    {% csrf_token %}
+                                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3">Decline</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted text-center py-4">No requests received yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MY SENT REQUESTS -->
+    <div class="tab-pane fade" id="pills-sent" role="tabpanel">
+        <div class="bg-white p-4 rounded shadow-sm">
+            {% if my_requests %}
+                {% for request in my_requests %}
+                    <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ request.skill.title }}</h6>
+                            <small class="text-muted">Owner: {{ request.skill.owner.username }}</small>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-2 {% if request.status == 'pending' %}bg-warning text-dark{% elif request.status == 'approved' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ request.status|capfirst }}
+                        </span>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted text-center py-4">You haven't requested any skills yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

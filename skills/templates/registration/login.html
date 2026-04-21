@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 mt-5">
+        <div class="card shadow border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="display-6 fw-bold text-primary">Login</div>
+                    <p class="text-muted">Welcome back to SkillSwamp</p>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                            <input type="{{ field.field.widget.input_type|default:'text' }}" 
+                                   name="{{ field.name }}" 
+                                   id="{{ field.id_for_label }}"
+                                   class="form-control {% if field.errors %}is-invalid{% endif %}" 
+                                   required>
+                            {% for error in field.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm">Sign In</button>
+                    </div>
+                </form>
+                <div class="text-center mt-4">
+                    <p class="small text-muted mb-0">Don't have an account?</p>
+                    <a href="{% url 'signup' %}" class="text-decoration-none fw-bold">Create an account</a>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'skill_list' %}" class="text-muted small text-decoration-none">← Back to Marketplace</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
